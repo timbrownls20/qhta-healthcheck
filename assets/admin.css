@@ -1,0 +1,261 @@
+/**
+ * QHTA Healthcheck admin styles.
+ *
+ * The colours carry meaning here, so none of them is the only signal: every
+ * coloured dot sits beside a word ("Failed", "Warning", "OK"), and the table
+ * rows are distinguished by a left border as well as a tint. Red/green is the
+ * most common colour-vision deficiency there is, and a monitoring screen that
+ * can only be read by colour is a monitoring screen that some people cannot
+ * read at all.
+ */
+
+.qhta-healthcheck {
+	--qhta-hc-red: #b32d2e;
+	--qhta-hc-amber: #b26200;
+	--qhta-hc-green: #007017;
+	--qhta-hc-grey: #646970;
+	--qhta-hc-accent: #8a1538;
+}
+
+.qhta-healthcheck .qhta-hc-intro {
+	max-width: 60em;
+	color: #50575e;
+}
+
+/* ── the dot ─────────────────────────────────────────────── */
+
+.qhta-hc-dot {
+	display: inline-block;
+	width: 0.7em;
+	height: 0.7em;
+	border-radius: 50%;
+	margin-right: 0.5em;
+	background: var(--qhta-hc-grey, #646970);
+	vertical-align: baseline;
+}
+
+.qhta-hc-status-red .qhta-hc-dot,
+.qhta-hc-status-red > .qhta-hc-dot {
+	background: #b32d2e;
+}
+
+.qhta-hc-status-amber .qhta-hc-dot,
+.qhta-hc-status-amber > .qhta-hc-dot {
+	background: #dba617;
+}
+
+.qhta-hc-status-green .qhta-hc-dot,
+.qhta-hc-status-green > .qhta-hc-dot {
+	background: #00a32a;
+}
+
+.qhta-hc-status-unknown .qhta-hc-dot {
+	background: #c3c4c7;
+}
+
+.qhta-hc-status-skipped .qhta-hc-dot {
+	background: #dcdcde;
+}
+
+/* ── summary bar ─────────────────────────────────────────── */
+
+.qhta-hc-summary {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 1.5rem;
+	padding: 1rem 1.25rem;
+	margin: 1rem 0 1.5rem;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-left-width: 5px;
+	border-left-color: #c3c4c7;
+	border-radius: 4px;
+}
+
+.qhta-hc-summary.qhta-hc-status-red {
+	border-left-color: #b32d2e;
+}
+
+.qhta-hc-summary.qhta-hc-status-amber {
+	border-left-color: #dba617;
+}
+
+.qhta-hc-summary.qhta-hc-status-green {
+	border-left-color: #00a32a;
+}
+
+.qhta-hc-summary-headline {
+	font-size: 1.15rem;
+}
+
+.qhta-hc-summary-counts {
+	color: #50575e;
+}
+
+.qhta-hc-summary-actions {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+/* ── per-plugin card ─────────────────────────────────────── */
+
+.qhta-hc-plugin {
+	margin: 0 0 1.75rem;
+}
+
+.qhta-hc-plugin-title {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	font-size: 1.05rem;
+	margin: 0 0 0.4rem;
+}
+
+.qhta-hc-version {
+	font-size: 0.8rem;
+	font-weight: 400;
+	color: #646970;
+}
+
+.qhta-hc-note {
+	margin: 0 0 0.6rem;
+	padding: 0.5rem 0.75rem;
+	background: #fcf9e8;
+	border-left: 3px solid #dba617;
+	max-width: 60em;
+}
+
+.qhta-hc-plugin.qhta-hc-status-red .qhta-hc-note {
+	background: #fcf0f1;
+	border-left-color: #b32d2e;
+}
+
+/* ── the table ───────────────────────────────────────────── */
+
+.qhta-hc-table td {
+	vertical-align: top;
+}
+
+.qhta-hc-col-status {
+	width: 9rem;
+	white-space: nowrap;
+}
+
+.qhta-hc-table tr.qhta-hc-status-red td:first-child {
+	box-shadow: inset 4px 0 0 0 #b32d2e;
+}
+
+.qhta-hc-table tr.qhta-hc-status-amber td:first-child {
+	box-shadow: inset 4px 0 0 0 #dba617;
+}
+
+.qhta-hc-table tr.qhta-hc-status-green td:first-child {
+	box-shadow: inset 4px 0 0 0 #00a32a;
+}
+
+.qhta-hc-pill {
+	display: inline-block;
+	font-size: 0.8rem;
+	font-weight: 600;
+}
+
+.qhta-hc-status-red .qhta-hc-pill {
+	color: #b32d2e;
+}
+
+.qhta-hc-status-amber .qhta-hc-pill {
+	color: #8a6100;
+}
+
+.qhta-hc-status-green .qhta-hc-pill {
+	color: #007017;
+}
+
+.qhta-hc-status-unknown .qhta-hc-pill,
+.qhta-hc-status-skipped .qhta-hc-pill {
+	color: #646970;
+}
+
+.qhta-hc-sev {
+	display: block;
+	font-size: 0.7rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #646970;
+}
+
+.qhta-hc-tag {
+	display: inline-block;
+	font-size: 0.7rem;
+	padding: 0.05em 0.4em;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	color: #646970;
+	vertical-align: middle;
+}
+
+.qhta-hc-why {
+	margin: 0.35rem 0 0;
+	font-size: 0.85rem;
+	line-height: 1.5;
+	color: #50575e;
+	max-width: 55em;
+}
+
+.qhta-hc-detail {
+	font-size: 0.9rem;
+	color: #50575e;
+	word-break: break-word;
+}
+
+.qhta-hc-muted {
+	color: #646970;
+}
+
+/* ── footer ──────────────────────────────────────────────── */
+
+.qhta-hc-footer {
+	margin-top: 2rem;
+	padding: 1rem 1.25rem;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	max-width: 60em;
+}
+
+.qhta-hc-footer h2 {
+	margin-top: 0;
+	font-size: 1rem;
+}
+
+.qhta-hc-footer p {
+	font-size: 0.9rem;
+	line-height: 1.6;
+}
+
+/* ── dashboard widget ────────────────────────────────────── */
+
+.qhta-hc-widget-headline {
+	font-size: 1.05rem;
+	margin-top: 0;
+}
+
+.qhta-hc-widget-list {
+	margin: 0 0 0.75rem;
+	padding: 0;
+	list-style: none;
+}
+
+.qhta-hc-widget-list li {
+	padding: 0.4rem 0;
+	border-top: 1px solid #f0f0f1;
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+
+.qhta-hc-widget-list li:first-child {
+	border-top: 0;
+}
