@@ -105,6 +105,49 @@ function qhta_healthcheck_run_plugin( array $plugin, $include_remote = false, ar
 		);
 	}
 
+	// An old install location still sitting on disk after the plugin has moved.
+	if ( ! empty( $plugin['leftover_of'] ) ) {
+		return array(
+			'plugin'  => $plugin,
+			'status'  => 'amber',
+			'note'    => sprintf(
+				/* translators: %s: canonical plugin slug it was superseded by. */
+				__( 'Leftover copy from an earlier install location — this plugin now lives at %s, listed above. Nothing is wrong, but delete this one to finish the move. Its canaries are reported against the new copy, not here.', 'qhta-healthcheck' ),
+				$plugin['leftover_of']
+			),
+			'results' => array(),
+		);
+	}
+
+	// The same plugin installed twice — once as a must-use plugin, once through
+	// wp-admin — is reported ahead of everything else, because it is the kind of
+	// problem that makes every other reading on this card untrustworthy. Two
+	// copies of the same code both registering the same post type, constants and
+	// shortcode is not a degraded state, it is a fatal waiting for somebody to
+	// press Activate.
+	if ( ! empty( $plugin['duplicated'] ) ) {
+		$note = $plugin['duplicate_active']
+			? sprintf(
+				/* translators: 1: plugin name of the second copy, 2: its file. */
+				__( 'INSTALLED TWICE AND BOTH ARE RUNNING — as a must-use plugin, and as "%1$s" (%2$s), which is active. The same post types, constants and shortcodes are being registered twice. Deactivate and delete one copy.', 'qhta-healthcheck' ),
+				$plugin['duplicate_name'],
+				$plugin['duplicate_of']
+			)
+			: sprintf(
+				/* translators: 1: plugin name of the second copy, 2: its file. */
+				__( 'Installed twice: as a must-use plugin (always active), and as "%1$s" (%2$s), currently inactive. Do NOT activate the second copy — both would run and register the same post types, constants and shortcodes. Delete one.', 'qhta-healthcheck' ),
+				$plugin['duplicate_name'],
+				$plugin['duplicate_of']
+			);
+
+		return array(
+			'plugin'  => $plugin,
+			'status'  => $plugin['duplicate_active'] ? 'red' : 'amber',
+			'note'    => $note,
+			'results' => array(),
+		);
+	}
+
 	if ( ! $checks ) {
 		return array(
 			'plugin'  => $plugin,

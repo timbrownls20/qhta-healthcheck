@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       QHTA Healthcheck
  * Description:       Read-only self-monitoring for the QHTA custom plugins on qhta.com.au. Discovers every QHTA plugin, runs a set of canaries against the external dependencies each one relies on — WooCommerce and PMPro functions, hooks, tables, meta keys, checkout DOM selectors, cron events, add-ons — and reports red / amber / green to the WordPress dashboard. Changes nothing it watches.
- * Version:           1.1.1
+ * Version:           1.1.3
  * Author:            QHTA
  * License:           GPL-2.0-or-later
  * Requires at least: 6.0
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'QHTA_HEALTHCHECK_VERSION', '1.1.1' );
+define( 'QHTA_HEALTHCHECK_VERSION', '1.1.3' );
 define( 'QHTA_HEALTHCHECK_PATH', plugin_dir_path( __FILE__ ) );
 define( 'QHTA_HEALTHCHECK_URL', plugin_dir_url( __FILE__ ) );
 define( 'QHTA_HEALTHCHECK_SLUG', 'qhta-healthcheck' );

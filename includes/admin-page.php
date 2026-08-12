@@ -218,6 +218,13 @@ function qhta_healthcheck_render_plugin( array $plugin ) {
 		echo '</span>';
 	}
 
+	// Must-use is worth stating: it is always active, cannot be deactivated from
+	// wp-admin, and is invisible on the normal Plugins screen — which is exactly
+	// why one went unnoticed here for as long as it did.
+	if ( ! empty( $meta['mu'] ) ) {
+		echo ' <span class="qhta-hc-tag" title="' . esc_attr__( 'In wp-content/mu-plugins — always active, not listed on the normal Plugins screen.', 'qhta-healthcheck' ) . '">' . esc_html__( 'must-use', 'qhta-healthcheck' ) . '</span>';
+	}
+
 	echo '</h2>';
 
 	if ( $plugin['note'] ) {

@@ -33,7 +33,7 @@ Child plugins may register under **either** their canonical slug or their instal
 `qhta_healthcheck_checks_for()` merges through the alias map. A plugin should not have to know what
 this one chooses to file it under.
 
-## Watched today (8 plugins, 61 canaries)
+## Watched today (8 plugins, 62 canaries)
 
 | Registry slug | Installs as | Discovered by | Canaries |
 |---|---|---|---|
@@ -43,7 +43,7 @@ this one chooses to file it under.
 | qhta-woo-invoice | `qhta-woo-invoice` | slug prefix | 10 |
 | qhta-revenue | `qhta-revenue` | slug prefix | 6 |
 | qhta-mailchimp-archive | `qhta-mailchimp-archive` | slug prefix | 7 |
-| **qhta-conference-plugin** | whatever folder it was uploaded into | **plugin name** — not `qhta`-prefixed | 7 |
+| **qhta-conference-plugin** | whatever folder it was uploaded into | **plugin name** — not `qhta`-prefixed | 8 |
 | **qhta-pmpro-invoice-extensions** | single file, plugin name "QHTA Regenerate Invoice" | **alias** + plugin-name match | 6 |
 
 The last two are the reason discovery matches the **plugin name** as well as the slug, and the reason

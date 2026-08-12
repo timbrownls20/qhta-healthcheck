@@ -149,7 +149,7 @@ dependency so the rules win without `!important`, and **WordPress silently drops
 an enqueue whose dependency is not registered**. If Astra renames that handle the
 entire stylesheet vanishes from the page with no error anywhere.
 
-### qhta-conference-plugin — 7 canaries
+### qhta-conference-plugin — 8 canaries
 
 | Canary | Sev | Watches |
 |---|---|---|

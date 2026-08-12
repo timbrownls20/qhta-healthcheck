@@ -34,7 +34,9 @@ function qhta_healthcheck_plugin_slug( $file ) {
  *   - The conference program plugin is developed in a repo called
  *     qhta-conference-plugin but installs as `htaa-conference` — it is the HTAA
  *     national conference's program, not a QHTA one. Its slug therefore does
- *     not start with "qhta" and auto-discovery cannot see it.
+ *     not start with "qhta" and auto-discovery cannot see it. (It is also a
+ *     must-use plugin, which is a separate problem, solved in
+ *     qhta_healthcheck_installed_plugins() rather than here.)
  *   - The PMPro invoice work is a single-file plugin whose install folder has
  *     varied ("QHTA Regenerate Invoice" is its plugin name, not its slug).
  *
@@ -70,12 +72,15 @@ function qhta_healthcheck_slug_aliases() {
  * The third and last way of recognising a plugin, and the one that finally works
  * when the other two do not.
  *
- * Matching on the folder assumes you know what the folder is called. That
- * assumption failed in production: the conference program was reported "expected
- * on this site, but not installed" while sitting plainly in the plugins list,
- * because it had been installed under neither its canonical slug nor either of
- * the alternatives guessed for it. A folder name is decided at upload time by
- * whoever unzipped it, and can be anything.
+ * Matching on the folder assumes you know what the folder is called, and a folder
+ * name is decided at upload time by whoever unzipped the plugin — it can be
+ * anything. Name matching removes that assumption.
+ *
+ * (It was added while chasing the conference program's "expected on this site,
+ * but not installed", which turned out to have a different cause — it is a
+ * must-use plugin, and get_plugins() does not list those. The folder was fine.
+ * The name route is kept because the assumption it removes is still a real one,
+ * and it costs one array.)
  *
  * The plugin *header name* is different in kind: it is a property of the code
  * itself, it travels with the plugin, and it is the thing a human reads on the
@@ -158,12 +163,26 @@ function qhta_healthcheck_resolve_installed( $slug ) {
 }
 
 /**
- * Every installed plugin, keyed by slug.
+ * Every installed plugin, keyed by slug — INCLUDING must-use plugins.
  *
- * Cached per request — get_plugins() reads and parses the header of every file
- * in wp-content/plugins, and the answer cannot change mid-request.
+ * The mu-plugins half is not a nicety. get_plugins() does not list them at all,
+ * and one of the eight QHTA plugins is installed that way: the conference
+ * program lives in wp-content/mu-plugins/. Without this, the board reported it
+ * "expected on this site, but not installed" while it was not merely installed
+ * but permanently active — the single most misleading thing a monitor can say.
  *
- * @return array<string,array> Slug => plugin data, with 'file' and 'active' added.
+ * Must-use plugins differ in two ways that matter here:
+ *
+ *   - They are ALWAYS active. There is no activation state to read, so `active`
+ *     is hardcoded true. The "installed but not active" amber can never apply.
+ *   - WordPress only auto-loads .php files sitting DIRECTLY in mu-plugins/, not
+ *     inside subdirectories. So a foldered mu-plugin is really a loader file
+ *     beside a folder, and its slug comes from the file, not a directory.
+ *
+ * Cached per request — both calls parse plugin headers off disk, and the answer
+ * cannot change mid-request.
+ *
+ * @return array<string,array> Slug => plugin data, with 'file', 'active', 'mu' and 'duplicated' added.
  */
 function qhta_healthcheck_installed_plugins() {
 	static $plugins = null;
@@ -181,9 +200,38 @@ function qhta_healthcheck_installed_plugins() {
 	foreach ( get_plugins() as $file => $data ) {
 		$slug = qhta_healthcheck_plugin_slug( $file );
 
+		$data['file']       = $file;
+		$data['slug']       = $slug;
+		$data['active']     = is_plugin_active( $file );
+		$data['mu']         = false;
+		$data['duplicated'] = false;
+
+		$plugins[ $slug ] = $data;
+	}
+
+	foreach ( get_mu_plugins() as $file => $data ) {
+		$slug = qhta_healthcheck_plugin_slug( $file );
+
+		// The same plugin present BOTH as an mu-plugin and as a regular one is a
+		// finding, not a tie to break quietly. It happens when a plugin
+		// historically dropped into mu-plugins is later uploaded through
+		// wp-admin, and if the regular copy is then activated both run at once:
+		// the same post type registered twice, the same constants redefined, the
+		// same shortcode claimed twice. Flag it and keep the mu entry, because
+		// the mu copy is the one that is definitely executing.
+		if ( isset( $plugins[ $slug ] ) ) {
+			$data['duplicate_of']     = $plugins[ $slug ]['file'];
+			$data['duplicate_name']   = isset( $plugins[ $slug ]['Name'] ) ? $plugins[ $slug ]['Name'] : '';
+			$data['duplicate_active'] = ! empty( $plugins[ $slug ]['active'] );
+			$data['duplicated']       = true;
+		} else {
+			$data['duplicated'] = false;
+		}
+
 		$data['file']   = $file;
 		$data['slug']   = $slug;
-		$data['active'] = is_plugin_active( $file );
+		$data['active'] = true;
+		$data['mu']     = true;
 
 		$plugins[ $slug ] = $data;
 	}
@@ -276,6 +324,31 @@ function qhta_healthcheck_watched_plugins() {
 		}
 	);
 
+	// A leftover from a migration in progress: an OLD install location that is
+	// still on disk while the canonical entry has already resolved somewhere
+	// else. It survives the collapse above precisely because the canonical
+	// resolved elsewhere, so it stands as its own row — which is right, because
+	// it really is a second installed plugin and it really should be deleted.
+	//
+	// Naming it matters though. Left to the generic path it reports "no canaries
+	// defined", which reads as "somebody forgot to write checks" rather than
+	// "this is the old copy, finish the job". Half a migration is a state worth
+	// describing in its own words.
+	$leftovers = array();
+	$aliases   = qhta_healthcheck_slug_aliases();
+
+	foreach ( $aliases as $canonical_slug => $alternatives ) {
+		if ( ! isset( $resolved[ $canonical_slug ] ) ) {
+			continue;
+		}
+
+		foreach ( (array) $alternatives as $alternative ) {
+			if ( $alternative !== $resolved[ $canonical_slug ] && isset( $installed[ $alternative ] ) ) {
+				$leftovers[ $alternative ] = $canonical_slug;
+			}
+		}
+	}
+
 	$watching = array();
 
 	foreach ( $watch as $slug ) {
@@ -290,6 +363,12 @@ function qhta_healthcheck_watched_plugins() {
 			'installed'    => (bool) $found,
 			'active'       => (bool) ( $found && $found['active'] ),
 			'expected'     => in_array( $slug, $expected, true ),
+			'mu'           => (bool) ( $found && ! empty( $found['mu'] ) ),
+			'duplicated'   => (bool) ( $found && ! empty( $found['duplicated'] ) ),
+			'duplicate_of' => ( $found && ! empty( $found['duplicate_of'] ) ) ? $found['duplicate_of'] : '',
+			'duplicate_name'   => ( $found && ! empty( $found['duplicate_name'] ) ) ? $found['duplicate_name'] : '',
+			'duplicate_active' => (bool) ( $found && ! empty( $found['duplicate_active'] ) ),
+			'leftover_of'  => isset( $leftovers[ $slug ] ) ? $leftovers[ $slug ] : '',
 		);
 	}
 

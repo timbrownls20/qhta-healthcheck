@@ -2,6 +2,57 @@
 
 All notable changes to QHTA Healthcheck.
 
+## 1.1.3 — 12 August 2026
+
+### Added
+- **Leftover copies from a migration are named as such.** When a plugin moves
+  install location — the PMPro invoice plugin going from a bare
+  `regenerate_invoice.php` to a proper folder — both copies exist on the site
+  until the old one is deleted, and the old one was reported as a separate plugin
+  with *"no canaries defined"*.
+
+  That reads as "somebody forgot to write checks" rather than "this is the old
+  copy, finish the job". It now says the latter, and names the entry that
+  superseded it. Half a migration is a state worth describing in its own words.
+
+### Fixed
+- `$aliases` was undefined in `qhta_healthcheck_watched_plugins()` after an
+  earlier refactor moved the lookup into `qhta_healthcheck_resolve_installed()`.
+  A PHP warning rather than a failure, and the leftover detection above silently
+  did nothing — found by running the test harness with warnings escalated to
+  failures, which is now how it runs.
+
+## 1.1.2 — 12 August 2026
+
+### Fixed
+- **Must-use plugins are now discovered.** `get_plugins()` does not list anything
+  in `wp-content/mu-plugins/`, and one of the eight QHTA plugins lives there: the
+  conference program. The board reported it *"expected on this site, but not
+  installed"* while it was not merely installed but **permanently active** —
+  the most misleading thing a monitor can say, and the actual cause of the red
+  row. `get_mu_plugins()` is now read alongside `get_plugins()`.
+
+  This, not the folder name, was the root cause. The `htaa-conference` alias
+  added in 1.1.1 had been correct all along; nothing was ever looking in the
+  right directory. The name-matching route from 1.1.1 is kept — the assumption it
+  removes is still real — but it was not what was wrong.
+
+  Must-use plugins are marked `mu` and always reported active: there is no
+  activation state to read, so the "installed but not active" amber can never
+  apply to one. The board tags them **must-use**, because a plugin that cannot be
+  deactivated and does not appear on the normal Plugins screen is worth naming.
+
+### Added
+- **Detection of a plugin installed twice** — once as a must-use plugin and once
+  through wp-admin. Reported ahead of that plugin's canaries, because two copies
+  of the same code registering the same post types, constants and shortcodes
+  makes every other reading on the card untrustworthy.
+
+  **Amber** when the second copy is inactive (a fatal one click away), **red**
+  when both are running. This happens naturally when a plugin historically
+  dropped into `mu-plugins/` is later uploaded as a normal plugin — which is
+  exactly what a deploy zip invites somebody to do.
+
 ## 1.1.1 — 12 August 2026
 
 ### Fixed
